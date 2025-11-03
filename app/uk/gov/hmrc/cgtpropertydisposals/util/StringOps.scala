@@ -21,6 +21,7 @@ object StringOps {
   implicit class StringOps(private val s: String) extends AnyVal {
 
     def removeAllWhitespaces(): String = s.replaceAll(" ", "")
+    def removeNewLineChars(): String   = s.replaceAll("\r", "").replaceAll("\n", "")
 
   }
 
