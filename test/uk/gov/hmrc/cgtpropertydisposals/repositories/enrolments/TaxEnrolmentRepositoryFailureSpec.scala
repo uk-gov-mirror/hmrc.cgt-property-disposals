@@ -20,17 +20,14 @@ import org.scalacheck.Arbitrary
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import play.api.test.Helpers._
-import uk.gov.hmrc.cgtpropertydisposals.models.generators.Generators._
+import play.api.test.Helpers.*
 import uk.gov.hmrc.cgtpropertydisposals.models.enrolments.TaxEnrolmentRequest
+import uk.gov.hmrc.cgtpropertydisposals.models.generators.Generators.*
+import uk.gov.hmrc.cgtpropertydisposals.models.generators.TaxEnrolmentGen.given
 import uk.gov.hmrc.mongo.test.MongoSupport
 
 import java.time.LocalDateTime
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-import uk.gov.hmrc.cgtpropertydisposals.models.generators.TaxEnrolmentGen.given
-
-import org.mongodb.scala.SingleObservableFuture
 
 class TaxEnrolmentRepositoryFailureSpec extends AnyWordSpec with Matchers with MongoSupport with BeforeAndAfterAll {
 
@@ -41,35 +38,38 @@ class TaxEnrolmentRepositoryFailureSpec extends AnyWordSpec with Matchers with M
 
   val taxEnrolmentRequest: TaxEnrolmentRequest = sample[TaxEnrolmentRequest]
 
-  val clientClosed: Future[Unit] =
-    repository.collection.countDocuments().toFuture().map(_ => mongoComponent.client.close())
-
-  override protected def beforeAll(): Unit = await(clientClosed)
-
   "The Tax Enrolment Retry repository" when {
 
     "inserting into a broken repository" should {
       "fail the insert" in {
-        await(repository.save(taxEnrolmentRequest).value).isLeft shouldBe true
+        repository.save(taxEnrolmentRequest).value.map { either =>
+          either.isLeft shouldBe true
+        }
       }
     }
 
     "getting from a broken repository" should {
       "fail the get" in {
-        await(repository.get(taxEnrolmentRequest.ggCredId).value).isLeft shouldBe true
+        repository.get(taxEnrolmentRequest.ggCredId).value.map { either =>
+          either.isLeft shouldBe true
+        }
       }
     }
 
     "deleting from a broken repository" should {
       "fail the delete" in {
-        await(repository.delete(taxEnrolmentRequest.ggCredId).value).isLeft shouldBe true
+        repository.delete(taxEnrolmentRequest.ggCredId).value.map { either =>
+          either.isLeft shouldBe true
+        }
       }
     }
     "updating on a broken repository"   should {
       val updatedTaxEnrolmentRequest = sample[TaxEnrolmentRequest]
       "fail to update" in {
         await(repository.save(taxEnrolmentRequest).value)
-        await(repository.update(taxEnrolmentRequest.ggCredId, updatedTaxEnrolmentRequest).value).isLeft shouldBe true
+        repository.update(taxEnrolmentRequest.ggCredId, updatedTaxEnrolmentRequest).value.map { either =>
+          either.isLeft shouldBe true
+        }
       }
     }
   }

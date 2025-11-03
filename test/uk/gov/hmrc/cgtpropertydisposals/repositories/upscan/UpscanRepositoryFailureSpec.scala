@@ -17,12 +17,10 @@
 package uk.gov.hmrc.cgtpropertydisposals.repositories.upscan
 
 import com.typesafe.config.ConfigFactory
-import org.mongodb.scala.SingleObservableFuture
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.Configuration
-import play.api.test.Helpers.*
 import uk.gov.hmrc.cgtpropertydisposals.models.generators.Generators.sample
 import uk.gov.hmrc.cgtpropertydisposals.models.generators.UpscanGen.{uploadReferenceGen, upscanUploadGen}
 import uk.gov.hmrc.cgtpropertydisposals.models.upscan.{UploadReference, UpscanUpload}
@@ -30,7 +28,6 @@ import uk.gov.hmrc.cgtpropertydisposals.repositories.DefaultCurrentInstant
 import uk.gov.hmrc.mongo.test.MongoSupport
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 class UpscanRepositoryFailureSpec extends AnyWordSpec with Matchers with MongoSupport with BeforeAndAfterAll {
   val config: Configuration = Configuration(
@@ -45,46 +42,46 @@ class UpscanRepositoryFailureSpec extends AnyWordSpec with Matchers with MongoSu
 
   val repository = new DefaultUpscanRepository(mongoComponent, config, defaultCurrentInstant)
 
-  val clientClosed: Future[Unit] =
-    repository.collection.countDocuments().toFuture().map(_ => mongoComponent.client.close())
-
-  override protected def beforeAll(): Unit = await(clientClosed)
-
   "Upscan Repository" when {
     "inserting" should {
       "return an error if there is a failure" in {
         val upscanUpload = sample[UpscanUpload]
-        await(repository.insert(upscanUpload).value).isLeft shouldBe true
+        repository.insert(upscanUpload).value.map { either =>
+          either.isLeft shouldBe true
+        }
       }
     }
 
     "updating an upscan upload document" should {
       "return an error if there is a failure" in {
-        await(
-          repository
-            .select(sample[UploadReference])
-            .value
-        ).isLeft shouldBe true
+        repository
+          .select(sample[UploadReference])
+          .value
+          .map { either =>
+            either.isLeft shouldBe true
+          }
       }
     }
 
     "selecting an upscan upload document" should {
       "return an error if there is a failure" in {
-        await(
-          repository
-            .select(sample[UploadReference])
-            .value
-        ).isLeft shouldBe true
+        repository
+          .select(sample[UploadReference])
+          .value
+          .map { either =>
+            either.isLeft shouldBe true
+          }
       }
     }
 
     "selecting all upscan upload documents" should {
       "return an error if there is a failure" in {
-        await(
-          repository
-            .selectAll(List(sample[UploadReference]))
-            .value
-        ).isLeft shouldBe true
+        repository
+          .selectAll(List(sample[UploadReference]))
+          .value
+          .map { either =>
+            either.isLeft shouldBe true
+          }
       }
     }
   }

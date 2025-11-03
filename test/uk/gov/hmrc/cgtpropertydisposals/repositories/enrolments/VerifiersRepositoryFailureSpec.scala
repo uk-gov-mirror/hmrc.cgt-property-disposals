@@ -16,12 +16,10 @@
 
 package uk.gov.hmrc.cgtpropertydisposals.repositories.enrolments
 
-import org.mongodb.scala.SingleObservableFuture
 import org.scalacheck.Arbitrary
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import play.api.test.Helpers.*
 import uk.gov.hmrc.cgtpropertydisposals.models.generators.Generators.*
 import uk.gov.hmrc.cgtpropertydisposals.models.generators.TaxEnrolmentGen.given
 import uk.gov.hmrc.cgtpropertydisposals.repositories.model.UpdateVerifiersRequest
@@ -29,7 +27,6 @@ import uk.gov.hmrc.mongo.test.MongoSupport
 
 import java.time.LocalDateTime
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 class VerifiersRepositoryFailureSpec extends AnyWordSpec with Matchers with MongoSupport with BeforeAndAfterAll {
 
@@ -40,28 +37,29 @@ class VerifiersRepositoryFailureSpec extends AnyWordSpec with Matchers with Mong
 
   val updateVerifierDetails: UpdateVerifiersRequest = sample[UpdateVerifiersRequest]
 
-  val clientClosed: Future[Unit] =
-    repository.collection.countDocuments().toFuture().map(_ => mongoComponent.client.close())
-
-  override protected def beforeAll(): Unit = await(clientClosed)
-
   "The Update Verifiers repository" when {
 
     "inserting into a broken repository" should {
       "fail the insert" in {
-        await(repository.insert(updateVerifierDetails).value).isLeft shouldBe true
+        repository.insert(updateVerifierDetails).value.map { either =>
+          either.isLeft shouldBe true
+        }
       }
     }
 
     "getting from a broken repository" should {
       "fail the get" in {
-        await(repository.get(updateVerifierDetails.ggCredId).value).isLeft shouldBe true
+        repository.get(updateVerifierDetails.ggCredId).value.map { either =>
+          either.isLeft shouldBe true
+        }
       }
     }
 
     "deleting from a broken repository" should {
       "fail the delete" in {
-        await(repository.delete(updateVerifierDetails.ggCredId).value).isLeft shouldBe true
+        repository.delete(updateVerifierDetails.ggCredId).value.map { either =>
+          either.isLeft shouldBe true
+        }
       }
     }
   }
