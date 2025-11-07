@@ -465,8 +465,9 @@ class DefaultReturnsService @Inject() (
     agentReferenceNumber: Option[AgentReferenceNumber],
     amendReturnData: Option[AmendReturnData]
   )(implicit hc: HeaderCarrier, request: Request[?]): Unit = {
+    //responseBody.escapeNewLineChars().getBytes.foreach(b => print(s"$b "))
     val responseJson =
-      Try(Json.parse(responseBody.removeNewLineChars()))
+      Try(Json.parse(responseBody.escapeNewLineChars()))
         .getOrElse(Json.parse(s"""{ "body" : "could not parse body as JSON: $responseBody" }"""))
     val requestJson  = Json.toJson(desSubmitReturnRequest)
 

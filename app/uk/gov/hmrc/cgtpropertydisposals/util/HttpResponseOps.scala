@@ -28,9 +28,7 @@ object HttpResponseOps {
   implicit class HttpResponseOps(private val response: HttpResponse) extends AnyVal {
 
     def parseJSON[A](path: Option[String] = None)(implicit reads: Reads[A]): Either[String, A] =
-      Try(
-        path.fold[JsLookupResult](JsDefined(Json.parse(response.body.removeNewLineChars())))(response.json \ _)
-      ) match {
+      Try(path.fold[JsLookupResult](JsDefined(response.json))(response.json \ _)) match {
 
         case Success(jsLookupResult) =>
           // use Option here to filter out null values

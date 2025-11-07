@@ -18,8 +18,8 @@ package uk.gov.hmrc.cgtpropertydisposals.service.returns
 
 import cats.data.EitherT
 import cats.instances.future.*
-import org.mockito.ArgumentMatchers
-import org.mockito.ArgumentMatchers.any
+import org.mockito.{ArgumentMatchers, Mockito}
+import org.mockito.ArgumentMatchers.{any, anyString}
 import org.mockito.Mockito.{doNothing, when}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -53,6 +53,7 @@ import uk.gov.hmrc.cgtpropertydisposals.models.returns.audit.{SubmitReturnEvent,
 import uk.gov.hmrc.cgtpropertydisposals.service.audit.AuditService
 import uk.gov.hmrc.cgtpropertydisposals.service.email.EmailService
 import uk.gov.hmrc.cgtpropertydisposals.service.returns.transformers.{ReturnSummaryListTransformerService, ReturnTransformerService}
+import uk.gov.hmrc.cgtpropertydisposals.util.HttpResponseOps.HttpResponseOps
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 import java.time.{LocalDate, LocalDateTime, LocalTime}
@@ -481,6 +482,7 @@ class ReturnsServiceSpec extends AnyWordSpec with Matchers {
           val submitReturnRequest    = sample[SubmitReturnRequest].copy(amendReturnData = None)
           val desSubmitReturnRequest = DesSubmitReturnRequest(submitReturnRequest, None)
 
+
           mockAuditSubmitReturnEvent(
             submitReturnRequest.subscribedDetails.cgtReference,
             desSubmitReturnRequest,
@@ -551,7 +553,7 @@ class ReturnsServiceSpec extends AnyWordSpec with Matchers {
                |"processingDate":"2020-02-20T09:30:47Z",
                |"ppdReturnResponseDetails": {
                |     "chargeType": "Late \rPenalty",
-               |     "chargeReference":"$chargeReference",
+               |     "chargeReference":"\n$chargeReference",
                |     "amount":11.0,
                |     "dueDate":"2020-03-11",
                |     "formBundleNumber":"$formBundleId",
