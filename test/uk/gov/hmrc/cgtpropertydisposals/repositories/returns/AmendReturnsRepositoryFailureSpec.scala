@@ -17,10 +17,12 @@
 package uk.gov.hmrc.cgtpropertydisposals.repositories.returns
 
 import com.typesafe.config.ConfigFactory
+import org.mongodb.scala.SingleObservableFuture
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.Configuration
+import play.api.test.Helpers.*
 import uk.gov.hmrc.cgtpropertydisposals.models.generators.Generators.sample
 import uk.gov.hmrc.cgtpropertydisposals.models.generators.IdGen.given
 import uk.gov.hmrc.cgtpropertydisposals.models.generators.SubmitReturnGen.given
@@ -30,6 +32,7 @@ import uk.gov.hmrc.cgtpropertydisposals.repositories.DefaultCurrentInstant
 import uk.gov.hmrc.mongo.test.MongoSupport
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 class AmendReturnsRepositoryFailureSpec extends AnyWordSpec with Matchers with MongoSupport with BeforeAndAfterAll {
   private val config = Configuration(
@@ -47,21 +50,22 @@ class AmendReturnsRepositoryFailureSpec extends AnyWordSpec with Matchers with M
   private val submitReturnRequest = sample[SubmitReturnRequest]
   private val cgtReference        = sample[CgtReference]
 
+  val clientClosed: Future[Unit] =
+    repository.collection.countDocuments().toFuture().map(_ => mongoComponent.client.close())
+
+  override protected def beforeAll(): Unit = await(clientClosed)
+
   "AmendReturnsRepository" when {
 
-    "inserting" should {
-      "insert an amend return request successfully" in {
-        repository.save(submitReturnRequest).value.map { either =>
-          either.isLeft shouldBe true
-        }
+    "inserting into a broken repository" should {
+      "fail the insert" in {
+        intercept[IllegalStateException](repository.save(submitReturnRequest))
       }
     }
 
-    "getting" should {
-      "retrieve an existing record" in {
-        repository.fetch(cgtReference).value.map { either =>
-          either.isLeft shouldBe true
-        }
+    "getting from a broken repository" should {
+      "fail to retrieve an existing record" in {
+        await(repository.fetch(cgtReference).value).isLeft shouldBe true
       }
     }
   }
